@@ -128,8 +128,11 @@ int main(){
   bool reset = false;
   bool ldnum = false;
   bool lddec = false;
+  bool ldstr = false;
   int num = 0;
   double decimal = 0;
+  string str = "";
+
 
   for(int i = 0; i < exprsn.size(); i++){
 
@@ -215,13 +218,45 @@ int main(){
            decimal = 0;
          }
 
+         if((exprsn[i]>=65 && exprsn[i] <= 90) || (exprsn[i]>=97 && exprsn[i] <= 122)){
+           if(!ldstr) ldstr = true;
+           str += exprsn[i];
+         }
+
+         if((!(exprsn[i]>=65 && exprsn[i] <= 90) || (exprsn[i]>=97 && exprsn[i] <= 122)) && ldstr){
+           ldstr = false;
+           if(str == "e"){
+             token* tok;
+             if (isneg) tok = new token(-1*2.718);
+             else tok = new token(2.718);
+             syexp.push_back(tok);
+             ldnum = false;
+             isneg = false;
+             prevnum = true;
+             num = 0;
+           }
+
+           else if(str == "Pi"){
+             token* tok;
+             if (isneg) tok = new token(-1*3.14169);
+             else tok = new token(3.14169);
+             syexp.push_back(tok);
+             ldnum = false;
+             isneg = false;
+             prevnum = true;
+             num = 0;
+           }
+
+
+           str = "";
+         }
 
       if(exprsn[i] == '-' && !prevnum) {
         isneg = true;
 
       }
       else if(exprsn[i] == '+' || exprsn[i] == '-' || exprsn[i] == '*' || exprsn[i] == '/' || exprsn[i] == '^' ){
-        
+
         if(!expstack.empty() && preced(exprsn[i]) > preced(expstack.top()->getOp()) && exprsn[i] != '^'){
           token* tok = new token(exprsn[i]);
           expstack.push(tok);
@@ -271,6 +306,8 @@ int main(){
       }
 
 
+
+
   }
 
   if(ldnum){
@@ -294,6 +331,34 @@ int main(){
     lddec = false;
     prevnum = true;
     num = 0;
+  }
+
+  else if(ldstr){
+    ldstr = false;
+    if(str == "e"){
+      token* tok;
+      if (isneg) tok = new token(-1*2.718);
+      else tok = new token(2.718);
+      syexp.push_back(tok);
+      ldnum = false;
+      isneg = false;
+      prevnum = true;
+      num = 0;
+    }
+
+    else if(str == "Pi"){
+      token* tok;
+      if (isneg) tok = new token(-1*3.14169);
+      else tok = new token(3.14169);
+      syexp.push_back(tok);
+      ldnum = false;
+      isneg = false;
+      prevnum = true;
+      num = 0;
+    }
+
+
+    str = "";
   }
 
   while(!expstack.empty()){
