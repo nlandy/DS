@@ -126,11 +126,14 @@ int main(){
   bool prevnum = false;
   bool isneg = false;
   bool reset = false;
-  int num;
+  bool ldnum = false;
+  bool lddec = false;
+  int num = 0;
+  double decimal = 0;
 
   for(int i = 0; i < exprsn.size(); i++){
 
-    if(!prevnum &&
+    if(!ldnum && !lddec &&
       (exprsn[i] == '0' ||
        exprsn[i] == '1' ||
        exprsn[i] == '2' ||
@@ -143,10 +146,10 @@ int main(){
        exprsn[i] == '9' ||
        exprsn[i] == '0')){
          num = exprsn[i] - '0';
-         prevnum = true;
+         ldnum = true;
        }
 
-      else if(prevnum &&
+      else if(ldnum &&
         (exprsn[i] == '0' ||
          exprsn[i] == '1' ||
          exprsn[i] == '2' ||
@@ -160,24 +163,65 @@ int main(){
          exprsn[i] == '0')){
            num = num*10;
            num += exprsn[i] - '0';
-           prevnum = true;
+           ldnum = true;
          }
 
-      else if(prevnum && exprsn[i] != ' ' ) {
+      else if(ldnum && exprsn[i] != ' ' && exprsn[i] != '.') {
         token* tok;
         if (isneg) tok = new token(-1*num);
         else tok = new token(num);
         syexp.push_back(tok);
-        reset = true;
+        ldnum = false;
+        isneg = false;
+        prevnum = true;
         num = 0;
       }
 
+      else if(exprsn[i] == '.' ) {
+        ldnum = false;
+        lddec = true;
+      }
+
+      else if(lddec &&
+        (exprsn[i] == '0' ||
+         exprsn[i] == '1' ||
+         exprsn[i] == '2' ||
+         exprsn[i] == '3' ||
+         exprsn[i] == '4' ||
+         exprsn[i] == '5' ||
+         exprsn[i] == '6' ||
+         exprsn[i] == '7' ||
+         exprsn[i] == '8' ||
+         exprsn[i] == '9' ||
+         exprsn[i] == '0')){
+           while((int)decimal != decimal) decimal*=10;
+           decimal*=10;
+           decimal += exprsn[i] - '0';
+
+           while(decimal>1) decimal/=10;
+
+         }
+
+         else if(lddec && exprsn[i] != ' ' ) {
+           token* tok;
+           if (isneg) tok = new token(-1*((double)num+decimal));
+           else tok = new token((double)num + decimal);
+           syexp.push_back(tok);
+           ldnum = false;
+           isneg = false;
+           lddec = false;
+           prevnum = true;
+           num = 0;
+           decimal = 0;
+         }
+
+
       if(exprsn[i] == '-' && !prevnum) {
         isneg = true;
-        prevnum = false;
+
       }
       else if(exprsn[i] == '+' || exprsn[i] == '-' || exprsn[i] == '*' || exprsn[i] == '/' || exprsn[i] == '^' ){
-
+        
         if(!expstack.empty() && preced(exprsn[i]) > preced(expstack.top()->getOp()) && exprsn[i] != '^'){
           token* tok = new token(exprsn[i]);
           expstack.push(tok);
@@ -212,7 +256,7 @@ int main(){
       else if(exprsn[i] == '('){
         token* tok = new token(exprsn[i]);
         expstack.push(tok);
-
+        prevnum = false;
 
       }
 
@@ -226,22 +270,29 @@ int main(){
 
       }
 
-      if(reset){
-        prevnum = false;
-        isneg = false;
-        reset = false;
-      }
-
 
   }
 
-  if(prevnum){
+  if(ldnum){
     token* tok;
     if (isneg) tok = new token(-1*num);
     else tok = new token(num);
     syexp.push_back(tok);
+    ldnum = true;
     prevnum = false;
     isneg = false;
+    num = 0;
+  }
+
+  else if (lddec){
+    token* tok;
+    if (isneg) tok = new token(-1*((double)num+decimal));
+    else tok = new token((double)num + decimal);
+    syexp.push_back(tok);
+    ldnum = false;
+    isneg = false;
+    lddec = false;
+    prevnum = true;
     num = 0;
   }
 
