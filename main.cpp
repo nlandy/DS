@@ -72,9 +72,15 @@ void simplify (deque<token*> *syexp){
       stk.push(syexp->front());
       syexp->pop_front();
     }
-
-    double num2 = (double)stk.top()->getNum();
-    stk.pop();
+    double num2;
+    if(syexp->front()->getOp() == '+'||
+       syexp->front()->getOp() == '-'||
+       syexp->front()->getOp() == '*'||
+       syexp->front()->getOp() == '/'||
+       syexp->front()->getOp() == '^'){
+         num2 = (double)stk.top()->getNum();
+         stk.pop();
+       }
     double num1 = (double)stk.top()->getNum();
     stk.pop();
     double num3;
@@ -95,10 +101,21 @@ void simplify (deque<token*> *syexp){
       num3 = pow(num1, num2);
     }
 
+    else if (syexp->front()->getOp() == 's'){
+      num3 = sin(num1);
+    }
+
+    else if (syexp->front()->getOp() == 'c'){
+      num3 = cos(num1);
+    }
+    else if (syexp->front()->getOp() == 'l'){
+      num3 = log(num1);
+    }
+
     syexp->pop_front();
     token* tok = new token(num3);
     syexp->push_front(tok);
-    print_deque(syexp);
+    //print_deque(syexp);
   }
 
   cout<<endl;
@@ -109,7 +126,7 @@ void evaluate (deque <token*> *syexp){
 
 
     simplify(syexp);
-
+    print_deque(syexp);
 }
 
 
@@ -221,9 +238,10 @@ int main(){
          if((exprsn[i]>=65 && exprsn[i] <= 90) || (exprsn[i]>=97 && exprsn[i] <= 122)){
            if(!ldstr) ldstr = true;
            str += exprsn[i];
+
          }
 
-         if((!(exprsn[i]>=65 && exprsn[i] <= 90) || (exprsn[i]>=97 && exprsn[i] <= 122)) && ldstr){
+         if(!((exprsn[i]>=65 && exprsn[i] <= 90) || (exprsn[i]>=97 && exprsn[i] <= 122)) && ldstr){
            ldstr = false;
            if(str == "e"){
              token* tok;
@@ -247,6 +265,23 @@ int main(){
              num = 0;
            }
 
+           else if(str == "sin"){
+             token* tok = new token('s');
+             expstack.push(tok);
+             prevnum = false;
+           }
+
+           else if(str == "cos"){
+             token* tok = new token('c');
+             expstack.push(tok);
+             prevnum = false;
+           }
+
+           else if(str == "log"){
+             token* tok = new token('l');
+             expstack.push(tok);
+             prevnum = false;
+           }
 
            str = "";
          }
@@ -356,6 +391,23 @@ int main(){
       prevnum = true;
       num = 0;
     }
+    else if(str == "sin"){
+      token* tok = new token('s');
+      expstack.push(tok);
+      prevnum = false;
+    }
+
+    else if(str == "cos"){
+      token* tok = new token('c');
+      expstack.push(tok);
+      prevnum = false;
+    }
+
+    else if(str == "log"){
+      token* tok = new token('l');
+      expstack.push(tok);
+      prevnum = false;
+    }
 
 
     str = "";
@@ -366,8 +418,8 @@ int main(){
     expstack.pop();
   }
 
-  print_deque(&syexp);
-  cout<<endl;
+  //print_deque(&syexp);
+  //cout<<endl;
 
   try{
   evaluate(&syexp);
